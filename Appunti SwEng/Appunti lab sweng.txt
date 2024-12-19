@@ -1,0 +1,228 @@
+Lab01 - Doubly Linked List con Gab ------------------------------------------------------------------------------------------------------------------------------------------------------
+In questo lab abbiamo dato un'occhiata generale ai tool del corso: git, gradle, intellij.
+L'esercizio è molto semplice: implementare una doubly linked list con funzioni di push, pop, shift e unshift.
+Un concetto su cui ci siamo soffermati è il "million dollar problem": come gestire i valori nulli. Per farlo, esistono varie metodologie:
+- Metodo sconsigliato: ammettere valori nulli (pericoloso);
+- Programmazione difensiva: non ammettere valori nulli dando la responsabilità del controllo al codice (che quindi si "difende" dai valori nulli). Per farlo si può utilizzare una semplice condizione (val != null), oppure Objects.requireNonNull(val).
+- Programmazione basata su contratti: non ammettere valori nulli dando la responsabilità del controllo al chiamante, sfruttando le notazioni di Intellij @NotNull oppure tramite assert(val != null).
+
+Piccolo approfondimento delle notazioni di Intellij: nullability.
+Le notazioni @Nullable e @NotNull sono notazioni che permettono di trovare bug ed inconsistenze nella gerarchia di dati tramite la Code Inspection di Intellij, che informa sulle discrepanze quando possibile.
+
+La notazione @Nullable serve per denotare che un elemento è valido anche quando il suo valore è nullo: 
+- per metodi, il valore di ritorno;
+- per parametri, il valore passato;
+- per variabili, il valore contenuto;
+Quando si effettua Override di un metodo @Nullable, il metodo figlio può essere @Nullable o @NotNull. Se i parametri sono @Nullable, i parametri del metodo figlio richiedono @Nullable.
+
+
+La notazione @NotNull invece annota che sia vietato utilizzare un valore nullo per questo elemento. Quando si effettua Override di un metodo @NotNull, anche il metodo figlio lo richiede. Se i parametri sono @NotNull, i parametri del metodo figlio possono essere @NotNull o @Nullable.
+
+Note su intellij:
+- testing con gradle (icona dell'elefantino sulla destra)
+- testing con coverage (icona dei tra puntini a fianco al pulsante di run veloce in alto): permette di eseguire un test calcolando quante righe del codice testato vengono utilizzate. Se eseguire tutti i test con coverage non riscontra un utilizzo del 100% del codice, i casi sono 2: o è codice inutile, o serve aggiungere un'unità di test che copra anche quella parte;
+- analisi automatica del codice: fornisce hints utili al refactoring
+
+
+
+
+
+Lab02 - Bowling kata con Alessandro ---------------------------------------------------------------------------------------------------------------------------------------------------
+In questo laboratorio il focus è il TDD: fare pratica a rispettare l'ordine dei commit rosso-verde-refactoring.
+L'esercizio è risultato relativamente semplice, dilungatosi a causa della nostra gestione errata di spare e strike. Corretto in autonomia la stessa sera in 15 minuti.
+
+
+
+
+
+Lab03 - Forth Interpreter con Federica ------------------------------------------------------------------------------------------------------------------------------------------------
+In questo lab abbiamo iniziato ad usare git in maniera più approfondita tramite gitflow: il lavoro viene scandito tramite feature branches ed abbiamo rilasciato 2 versioni.
+1. Innanzitutto, una volta forkato e clonato il repo, si usa git flow init;
+2. Poi si fanno le feature: git flow feature start <nome feature>, così da lavorare su un altro branch per ogni funzionalità aggiuntiva, sempre in modalità TDD;
+3. Una volta fatte tutte le iterazioni necessarie per finire la feature, si usa git flow feature finish per fare un merge sul branch develop;
+4. Una volta finite abbastanza funzionalità da avere un prodotto valido, si può usare git flow release start <nome release> per iniziare un rilascio;
+5. Dopo aver fatto eventuali bug fixes si può fare git flow release finish 'nome release' per effettuare un merge da develop nel branch release;
+E' importante calibrare adeguatamente la granularità delle feature, non serve iniziare una nuova feature ad ogni nuovo test del TDD. 
+Nel nostro caso, abbiamo effettuato una feature per la gestione dei soli numeri ed una feature per ogni operatore/comando da implementare.
+
+Abbiamo anche visto come scrivere i test, sia tramite @Test per test semplici, sia tramite @ParameterizedTest e @CvsSource per test parametrizzati.
+  @ParameterizedTest
+  @CsvSource({
+          "'input1', expected1",
+          "'input2', expected2"
+  })
+  public void test(String input, String output){
+    String resul = object.method(input);
+    assertThat(result).isEqualTo(output);
+  }
+In questo modo il test verrà eseguito 2 volte con input differenti, utile per controllare casi differenti dello stesso problema.
+
+Si può fare allo stesso modo per controllare che il codice lanci eccezioni specifiche:
+  @ParameterizedTest
+  @CsvSource({
+          "'input1', expected1",
+          "'input2', expected2"
+  })
+  public void test(String input, String output){
+          assertThatThrownBy(
+            () -> object.method(input))
+            .isInstanceOf(IllegalArgumentException.class)
+            .hasMessage(output);
+  }
+
+
+
+
+Lab04 - Poker kata con Alessandro --------------------------------------------------------------------------------------------------------------------------------------------------
+In questo lab abbiamo implementato delle basi di un programmino per giocare a poker. Il focus era sul pattern Chain of Responsibility utilizzato per gestire
+la valutazione di una mano di un giocatore. A causa di un problema con i commit sui rami feature ho personalmente visto il comando cherry pick.
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+Lab05 - Rubamazzetto con Lorenzo ---------------------------------------------------------------------------------------------------------------------------------------------------
+In questo lab abbiamo complementato del codice già parzialmente fornito per la gestione di partite a rubamazzetto. Il focus della lezione non mi è sembrato niente
+di specifico, solo lavorare. Nel complesso, lab deludente per via del codice fornito dal prof errato, e per via della necessità di utilizzare mockito senza averlo 
+trattato abbastanza bene. Ad esempio, era necessario implementare un test che facesse dependency injection e non lo avevamo ancora mai visto.
+
+Durante la lezione di teoria successiva il prof Bellettini ha fatto delle osservazioni:
+- planning game
+- prestare attenzione a ciò che dicono i professori
+- guardare la documentazione di assertj
+- guardare la funzione extracting: assertThat(partita).extracting("tavolo.scoperte", as(LIST)).contains(card)
+- guardare ciò che abbiamo visto per l'accesso a metodi privati
+- …
+- un solo exercise per test: io e lorenzo abbiamo testato size() con due assertThat, ma è meglio separarlo in due test, un sizeTest ed un sizeAfterDrawTest
+- ERRORACCIO: per size potevamo tenerci un attributo int size inizializzato a 52 (o meglio, alla dimensione iniziale dell'adaptee) e ridotto ad ogni draw
+
+Dependency injection: dichiara dei parametri con @Mock e dichiara l'oggetto in cui devono essere iniettati con @InjectMocks. Il metodo utilizzato da Mockito per l'injection
+è diviso in 3 livelli:
+1. cerca il costruttore con più parametri che prenda come input un parametro dello stesso tipo;
+2.
+3.
+
+Mocking del costruttore: 
+try (var mocked = Mockito.mockConstruction(Tavolo.class) {
+	//...?
+}
+------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+Lab06 - Tressette a 2 con Riccardo -------------------------------------------------------------------------------------------------------------------------------------------------
+Il lab era incentrato sul simulare la difficoltà del parziale che avrà luogo durante il lab 07, difatti si tratta del parziale dell'anno scorso.
+Tutto sommato non è stato molto complesso, ma non siamo comunque riusciti a finirlo: anche il prof Bellettini, a lezione, ha menzionato il fatto che 
+non è necessario terminare completamente il lavoro, è parte di progettazione andare a valutare quali parti implementare e quali no; terrà più conto del
+corretto utilizzo di git e di un'implementazione che rispetti i principi SOLID ed i code smells di cui abbiamo parlato. 
+
+
+La lezione dopo il prof ha fatto delle considerazioni:
+- ci lascia un pochino nell'ignoranza per git perché utilizzerà la storia dei commit per valutarci, se impariamo a "riscrivere la storia" allora tanto vale;
+- decidere da dove partire: 
+- se mi sono dimenticato di aprire una feature: si può aprire senza problemi
+- se mi sono dimenticato di fare commit ROSSO: posso fare un commit selezionando solamente i file di test come i cambiamenti da far rientrare nel commit
+- se ho committato il ROSSO ma il test era sbagliato: commit --amend
+- se ho committato il ROSSO ma volevo prima aprire un'altra feature: ??
+- se ho committato il ROSSO ma volevo fare REFACTORING: creo un'altra feature per il refactoring, commit, poi torno nella feature precedente e posso fare git flow feature rebase per riportare il contenuto della feature precedente in alto. E' simile ad un merge, ma prende tutti i commit della feature corrente e li riesegue come feature che si dirama dall'ultimo commit su develop.
+
+-------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+Lab07 - Parziale con Andrea Gerardi ---------------------------------------------------------------------------------------------------------------
+Andato bene daje
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+Lab08 - Inverted Index con Gabriel -----------------------------------------------------------------------------------------------------------------
+
+In questo laboratorio dobbiamo implementare un inverted index seguendo arbitrariamente le use stories fornite nel README. Purtroppo non è andato molto bene a causa di:
+- Gabriel che non aveva studiato i pattern appena fatti
+- La consegna poco guidata e con errori (menzionava l'utilizzo del pattern iterator e di pattern abstract factory, poco utili).
+
+Nonostante al termine del lab non avessimo compiuto molto, sono riuscito a completare il laboratorio individualmente tramite vari pattern: builder, strategy e chain of responsibility.
+La chain of responsibility implementata non era una soluzione molto elegante a causa del parametro di tipo Object dei valutatori, il professore ha consigliato un factory pattern per restituire il lettore adeguato indipendentemente dal tipo di input, anche se non mi è stato chiaro al 100%. Il resto era corretto, ma ha consigliato l'utilizzo del pattern decorator, forse per le classi che filtravano i documenti.
+---------------------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+Lab09 - Temperature converter with UI con Riccardo ------------------------------------------------------------------------------------------------
+
+In questo lab abbiamo visto per la prima volta elementi grafici eseguiti con javaFX
+
+Robot:
+
+
+
+
+Lab10 - Slalom femminile 
+…
+
+Considerazioni e correzioni a lezione:
+L'obiettivo di questo lab era avere un approccio MVP con uno stato del model più complesso: in particolare, il prof ha enfatizzato l'implementazione dell'update degli Observer con metodologie push e pull.
+Design for change è buono, ma non esasperarlo!
+
+1. Da dove si parte? Non c'è una risposta, abbiamo un'ampia libertà ed è un aspetto positivo. L'obiettivo è quello di fare in modo che abbiamo un progetto funzionante che potrebbe essere consegnato al cliente, non necessariamente fare tutto ciò che viene richiesto dalla consegna.
+
+2. Implementazione del prof: il Model. Ha implementato la classe Model ma ha estratto lo stato in una classe State che implementava un'interfaccia IState. 
+In IState ci sono i getter delle liste dei tempi, getFirstRun(), getSecondRun(), e getTotalRun(), oltre a getNextToSky() e addSecondRunTime().
+Le interfacce Observer ed Observable sono le stesse del lab precedente, con i generici.
+
+TotalRun l'ha implementata come List<TimeOfRun> invece che con una mappa perchè interessa solamente presentarli, è difficile che servirà fare qualche tipo di ricerca. 
+TODO: controlla record TimeOfRun: è composto da String name, double time.
+
+I getter restituiscono delle List<TimeOfRun> in modo che possano essere sortati dalle viste o dal presenter se necessario. Ha però restituito solo i primi 5 elementi per la total run, esplicitando che si potrebbe discutere di delegare la scelta dei primi 5 agli altri componenti.
+
+Il model è un adapter che adatta la classe concreta State per essere Observable<String>
+
+
+Presenter
+
+NextSkierPresenter implements Presenter, Observer<String>. Nel metodo action, verifica se l'input è corretto: se lo è, view.showSuccess() e procede ad aggiungere il tempo alla second run. Altrimenti, catch dell'eccezione e view.showError().
+In particolare, il presenter controlla se il tempo è >60s, perchè sa che assumiamo sia inferiore ai 60 secondi. Il controllo che sia positivo invece è nel record TimeOfRun perchè non ha senso che il tempo sia negativo proprio per la natura del record. Il model invece controlla che il nome della sciatrice di cui si sta inserendo un tempo sia presente nella prima manche, e che le due manche non siano ancora della stessa lunghezza, o che non sia già stato registrato il tempo della sciatrice.
+
+RunPresenter implements Observer<String>. In questa classe utilizziamo una strategia per ottenere la lista di TimeOfRun corretta tra prima manche, seconda manche e run totale.
+La strategia ha un'implementazione particolare: viene creata tramite model::getPrimaRun in modo da eliminare la dipendenza con il model ?
+NB: il presenter delle classifiche non ha bisogno del metodo action dell'interfaccia Presenter, quindi non è necessario implementarla se poi lasciamo il metodo vuoto.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
